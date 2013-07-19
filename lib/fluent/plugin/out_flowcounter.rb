@@ -30,7 +30,7 @@ class Fluent::FlowCounterOutput < Fluent::Output
     @message_out_keys = @message_out_keys.split(',')
     
     if @out_keys.empty? and @message.nil?
-      raise Fluent::ConfigError, Either 'message' or 'out_keys' must be specifed."
+      raise Fluent::ConfigError, "Either 'message' or 'out_keys' must be specifed."
     end
     
     begin
