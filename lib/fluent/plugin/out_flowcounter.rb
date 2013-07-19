@@ -190,8 +190,6 @@ class Fluent::FlowCounterOutput < Fluent::Output
       case key
       when @time_key
         values << @time_format_proc.call(time)
-      when @tag_key
-        values << tag
       else
         values << "#{key}: #{record[key].to_s}"
       end
