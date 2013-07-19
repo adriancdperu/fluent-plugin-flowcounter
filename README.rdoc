@@ -4,14 +4,14 @@
 
 === FlowCounterOutput
 
-Count metricses below about matches.
+Counts metrics below or about matches.
 
 - Messages per minute/hour/day
 - Bytes per minute/hour/day
 - Messages per second (average every minute/hour/day)
 - Bytes per second (average every minute/hour/day)
 
-FlowCounterOutput emits messages contains results data, so you can output these message (with 'flowcount' tag by default) to any outputs you want.
+FlowCounterOutput emits messages that contain results data, so you can output these messages (with 'flowcount' tag by default) to any outputs you want.
 
     output ex1 (aggragates all inputs): {"count":300, "bytes":3660, "count_rate":5, "bytes_rate":61}
     output ex2 (aggragates per tag): {"test_count":300, "test_bytes":3660, "test_count_rate":5, "test_bytes_rate":61, "service1_count":180, "service1_bytes":7260, "service1_count_rate":3, "service1_bytes_rate":121}
@@ -22,7 +22,7 @@ FlowCounterOutput emits messages contains results data, so you can output these 
 
 === FlowCounterOutput
 
-Counts from fields 'field1' and 'field2', per minute(default), aggregates per tags(default), output with tag 'flowcount'(default).
+Counts from fields 'field1' and 'field2', per minute (default), aggregates per tags (default), and gives output with tag 'flowcount' (default).
 
     <match **>
       type copy
