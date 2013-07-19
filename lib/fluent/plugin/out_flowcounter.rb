@@ -157,10 +157,6 @@ class Fluent::FlowCounterOutput < Fluent::Output
   def emit(tag, es, chain)
     # 
     messages = []
-    
-    es.each {|time,record|
-      messages << create_key_value_message(tag, time, record) if @out_keys
-    }
     #
     
     name = tag
@@ -173,6 +169,7 @@ class Fluent::FlowCounterOutput < Fluent::Output
       es.each {|time,record|
         c += 1
         b += record.to_msgpack.bytesize
+        messages << create_key_value_message(tag, time, record) if @out_keys
       }
     else
       es.each {|time,record|
