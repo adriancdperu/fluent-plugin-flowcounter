@@ -8,6 +8,11 @@ class Fluent::FlowCounterOutput < Fluent::Output
   config_param :tag, :string, :default => 'flowcount'
   config_param :input_tag_remove_prefix, :string, :default => nil
   config_param :count_keys, :string
+  config_param :out_keys, :string, :default => ""
+  config_param :message, :string, :default => nil
+  config_param :message_out_keys, :string, :default => ""
+  config_param :time_key, :string, :default => nil
+  config_param :time_format, :string, :default => nil
 
   include Fluent::Mixin::ConfigPlaceholders
 
@@ -17,6 +22,36 @@ class Fluent::FlowCounterOutput < Fluent::Output
 
   def configure(conf)
     super
+
+    # out_keys function
+    # TODO: write test
+    
+    @out_keys = @out_keys.split(',')
+    @message_out_keys = @message_out_keys.split(',')
+    
+    if @out_keys.empty? and @message.nil?
+      raise Fluent::ConfigError, Either 'message' or 'out_keys' must be specifed."
+    end
+    
+    begin
+      @message % (['1'] * @message_out_keys.length) if @message
+    rescue ArgumentError
+      raise Fluent::ConfigError, "string specifier '%s' of message and message_out_keys specification mismatch"
+    end
+
+    # case when time_key and time_format specified
+    
+    if @time_key
+      if @time_format
+        f = @time_format
+        tf = Fluent::TimeFormatter.new(f, @localtime)
+        @time_format_proc = tf.method(:format)
+        @time_parse_proc = Proc.new {|str| Time.strptime(str, f).to_i }
+      else
+        @time_format_proc = Proc.new {|time| time.to_s }
+        @time_parse_proc = Proc.new {|str| str.to_i }
+      end
+    end
 
     @unit = case @unit
             when 'minute' then :minute
@@ -120,6 +155,14 @@ class Fluent::FlowCounterOutput < Fluent::Output
   end
 
   def emit(tag, es, chain)
+    # 
+    messages = []
+    
+    es.each {|time,record|
+      messages << create_key_value_message(tag, time, record) if @out_keys
+    }
+    #
+    
     name = tag
     if @input_tag_remove_prefix and
         ( (tag.start_with?(@removed_prefix_string) and tag.length > @removed_length) or tag == @input_tag_remove_prefix)
@@ -141,4 +184,23 @@ class Fluent::FlowCounterOutput < Fluent::Output
 
     chain.next
   end
+  
+  # create_key_value_message method
+  def create_key_value_message(tag, time, record)
+    values = []
+
+    @out_keys.each do |key|
+      case key
+      when @time_key
+        values << @time_format_proc.call(time)
+      when @tag_key
+        values << tag
+      else
+        values << "#{key}: #{record[key].to_s}"
+      end
+    end
+
+    values.join("\n")
+  end
+  
 end
